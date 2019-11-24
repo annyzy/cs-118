@@ -1,0 +1,25 @@
+NAME: Ziying Yu
+EMAIL: annyu@g.ucla.edu
+ID: 105182320
+
+Included files:
+1. lab0.c
+	A single C source  module that reads from stdin and writes to stdout, which support --input=filename, --output=filename, --segfault and --catch options.
+2. Makefile:
+	A Makefile that supports (default), check, clean and dist.
+3. backtrace.png
+	A screenshot that shows a segfault and associated stack-trace
+4. breakpoint.png
+	A screenshot that shows a breakpoint and variable inspection
+4. README
+
+Smoke-test cases:
+1. test if successfully copy content from input file to output file
+2. test if successfully copy content from input
+3. test if successfully copy content into output
+4. test if successfully detect the input file that is not able to open
+5. test if successfully detect the output file that is not able to create
+6. test if successfully catches the segmentation fault
+7. test if successfully detect the invalid argument
+
+

@@ -1,0 +1,70 @@
+NAME: Ziying Yu
+EMAIL: annyu@g.ucla.edu
+ID: 105182320
+
+files:
+1) lab2_add.c:
+	a C implements and tests a shared variable add function, implements specified command line options, and producesspecified output statistics.
+
+2) SortedList.h:
+	a header file describing the interfaces for linked list operations.
+
+3)SortedList.c:
+	a C implements insert, delete, lookup, and length methods for a sorted doubly linked list.
+
+4)lab2_list.c:
+	a C implements specified command line options and produces specified output statistics.
+
+5)Makefile:
+	build, tests, graphs, dist and clean with specific requirements
+
+6)lab2_add.csv:
+	containing all the results for all of the Part-1 tests.
+
+7)lab2_list.csv:
+	containing all the results for all of the Part-2 tests.
+
+8)lab2_add:
+	lab2_add-1.png:
+	threads and iterations required a failure (with and without yields).
+	lab2_add-2.png:
+	average time per operation with and without yields.
+	lab2_add-3.png:
+	average time per (single threaded) operation vs. the number of iterations.
+	lab2_add-4.png:
+	threads and iterations that can run successfully with yields under each of the synchronization options.
+	lab2_add-5.png:
+	average time per (protected) operation vs. the number of threads.
+9)lab2_list:
+	lab2_list-1.png:
+	average time per (single threaded) unprotected operation vs. number of iterations 
+	lab2_list-2.png:
+	threads and iterations required to generate a failure (with and without yields).
+	lab2_list-3.png:
+	iterations that run (protected) without failure.
+	lab2_list-4.png:
+	(length-adjusted) cost per operation vs the number of threads for the various synchronization options.
+
+10)README
+
+QUESTION 2.1.1 - causing conflicts:
+The two questions yields to the same answer that a small numbers of threads can finish the thread_worker function faster than a single threads.
+
+QUESTION 2.1.2 - cost of yielding:
+the --yield option calls the sched_yield function that we put the current running thread to the back of the queue and another thread starts run, which create a content switch.
+it's impossible to get vaid per-operation timing with --yield because multiple yields functions may run at the same time due to the context switch.
+
+QUESTION 2.1.3 - measurement errors:
+Because the increasing iterations could compensate for the overhead of creating more threads.
+From the lab_add-2.png, we can see that the cost per iterations is decreasing while the number of the iterations increasing and its decreasing exponentially. Thus, there might be a point that the cost do not decrease anymore which result a "correct" cost.
+
+QUESTION 2.1.4 - costs of serialization:
+the low numbers of threads perform less overhead while created.
+as the number of the threads rises, the numbers of race conditions or the time that a lock is waiting for another lock increase, thus the three protected operations would slow down.
+
+QUESTION 2.2.1 - scalability of Mutex
+In part 1, the variation in time per mutex-protected operation increase as the number of threads increase but the rate of variation increasing slower. It could be the case that the most possible reason to effect the time would be the critical section which is very small in the addition C. 
+In part 2, the variation in time per mutex-protected operation increase as the number of threads increase and they seems increase concurrently. Since we create more threads that run concurrently, there are more memory contention the increase the time.
+
+QUESTION 2.2.2 - scalability of spin locks
+The variation in time per protected operation increase while the number of threads for list operations increase and they seems increase concurrently for both Mutex and Spin locks. From the graph, I can see the cost of spin locks is a little bit smaller when there are a relatively small amount of the threads but then become higher with the tread that almost excess the mutex due to the waste of a lot of Cpu cycles.

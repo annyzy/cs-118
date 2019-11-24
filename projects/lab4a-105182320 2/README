@@ -1,0 +1,21 @@
+#NAME: Ziying Yu
+#EMAIL: annyu@g.ucla.edu
+#ID: 105182320
+
+7files
+1)my_beaglebone.jpg: 
+	I hold my assembled Beaglebone.
+2)connected.png:
+	a USB terminal command session connected to my system.
+3)copy.png:
+	I copy a hello world program from laptop/desktop to the Beaglebone.
+4)build_run.png:
+	a WIFI SSH session(192.168.0.17) that I build and run a trivial (hello world) program.
+5)git.png:
+	a WIFI SSH session(192.168.0.17) that I install git and clone a repository.
+6)Makefile:
+	build the tarball.
+7)README: 
+	series number:BBGW18031250
+	mac:2CF7F10678E1
+

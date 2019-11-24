@@ -1,0 +1,17 @@
+NAME: Ziying Yu
+EMAIL: annyu@g.ucla.edu
+ID: 105182320
+
+Included files:
+1. lab1a.c
+	A single C source  module that support terminal I/O and Inter-Process Communication on the terminal and shell mode.
+2. Makefile:
+	A Makefile that supports (default), clean and dist.
+4. README
+
+Other informations:
+Research Reference
+1. waitpid(2): http://www.tutorialspoint.com/unix_system_calls/waitpid.htm)
+	WEXITSTATUS(status): return the exit status of the child, consist the lower 8 bits 			     of the shell's exit status 
+2. notice: write(to_shell[1],buffer+i, 1)
+	buffer is the starting address and the i is the offset.

@@ -1,0 +1,474 @@
+Total: 1158 samples
+    1118  96.5%  96.5%     1158 100.0% thread_worker
+      27   2.3%  98.9%       27   2.3% __strcmp_sse42
+       7   0.6%  99.5%       34   2.9% SortedList_insert
+       3   0.3%  99.7%        6   0.5% SortedList_lookup
+       3   0.3% 100.0%        3   0.3% _init
+       0   0.0% 100.0%     1158 100.0% __clone
+       0   0.0% 100.0%     1158 100.0% start_thread
+ROUTINE ====================== thread_worker in /u/cs/ugrad/ziying/cs111/p2b/lab2_list.c
+  1118   1158 Total samples (flat / cumulative)
+     .      .  321: //	return NULL;
+     .      .  322: //}
+     .      .  323: 
+     .      .  324: 
+     .      .  325: void *thread_worker(void *arg)
+---
+     .      .  326: {
+     .      .  327: 	int i = *((long*)arg);
+     .      .  328: 
+     .      .  329: 	struct timespec lock_begin, lock_end;
+     .      .  330: 
+     .      .  331: 	for (; i <  num_list_element; i+=threads)
+     .      .  332: 	{
+     .      .  333: 		if(opt_sync == 'm')
+     .      .  334: 		{
+     .      .  335: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  336: 			{
+     .      .  337: 				fprintf(stderr, "error starting mutex timing");
+     .      .  338: 				exit(1);
+     .      .  339: 			}
+     .      .  340: 			//clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  341: 			//pthread_mutex_lock(&mutex[list[i]]);
+     .      .  342: 			if (pthread_mutex_lock(&mutex[list[i]]) !=0 )
+     .      .  343: 			{
+     .      .  344: 				fprintf(stderr, "Cannot lock by mutex.\n");
+     .      .  345: 				exit(1);
+     .      .  346: 			}
+     .      .  347: 			//clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  348: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  349: 			{
+     .      .  350: 				fprintf(stderr, "error starting mutex timing");
+     .      .  351: 				exit(1);
+     .      .  352: 			}
+     .      .  353: 		}
+     .      .  354: 
+     .      .  355: 		else if (opt_sync == 's')
+     .      .  356: 		{
+     .      .  357: 			//clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  358: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  359: 			{
+     .      .  360: 				fprintf(stderr, "Cannot start mutex timing");
+     .      .  361: 				exit(1);
+     .      .  362: 			}
+     .      .  363: 
+   464    464  364: 			while (__sync_lock_test_and_set(&lock[list[i]], 1));
+     .      .  365: 
+     .      .  366: 			//clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  367: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  368: 			{
+     .      .  369: 				fprintf(stderr, "Cannot end mutex timing");
+     .      .  370: 				exit(1);
+     .      .  371: 			}
+     .      .  372: 		}
+     1      1  373: 		lock_time += 1000000000 * (lock_end.tv_sec - lock_begin.tv_sec) + lock_end.tv_nsec - lock_begin.tv_nsec;
+     .     34  374: 		SortedList_insert(&listhead[list[i]], &pool[i]);
+     .      .  375: 
+     .      .  376: 		if (opt_sync == 'm')
+     .      .  377: 		{
+     .      .  378: //			pthread_mutex_unlock(&mutex[list[i]]);
+     .      .  379: 			if( pthread_mutex_unlock(&mutex[list[i]])!= 0)
+     .      .  380: 			{
+     .      .  381: 				fprintf(stderr, "Cannot unlock by mutex.\n");
+     .      .  382: 				exit(1);
+     .      .  383: 			}
+     .      .  384: 		}
+     .      .  385: 
+     .      .  386: 		else if (opt_sync == 's')
+     1      1  387: 			__sync_lock_release(&lock[list[i]]);
+     .      .  388: 	}
+     .      .  389: 
+     .      .  390: 	//gets the list length
+     .      .  391: 	int lengths;
+     .      .  392: 	lengths = 0;
+     .      .  393: 
+     .      .  394: 	for ( i = 0; i < num_lists; i++)
+     .      .  395: 	{
+     .      .  396: 		if(opt_sync == 'm')
+     .      .  397: 		{
+     .      .  398: 		
+     .      .  399: 			clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  400: 			pthread_mutex_lock(&mutex[list[i]]);
+     .      .  401: 			clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  402: //			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  403: //			{
+     .      .  404: //				fprintf(stderr, "Cannot not start mutex timing.\n");
+     .      .  405: //				exit(1);
+     .      .  406: //			}
+     .      .  407: //
+     .      .  408: //			if( pthread_mutex_lock(&mutex[i])!= 0)
+     .      .  409: //			{
+     .      .  410: //				fprintf(stderr, "Cannot lock by mutex.\n");
+     .      .  411: //				exit(1);
+     .      .  412: //			}
+     .      .  413: //
+     .      .  414: //			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  415: //			{
+     .      .  416: //				fprintf(stderr, "Error on ending mutex timing.\n");
+     .      .  417: //				exit(1);
+     .      .  418: //			}
+     .      .  419: 		}
+     .      .  420: 		else if (opt_sync == 's')
+     .      .  421: 		{
+     .      .  422: 		
+     .      .  423: 			clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  424: 			while (__sync_lock_test_and_set(&lock[list[i]], 1));
+     .      .  425: 			clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  426: //			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  427: //			{
+     .      .  428: //				fprintf(stderr, "Cannot start mutex timing.\n");
+     .      .  429: //				exit(1);
+     .      .  430: //			}
+     .      .  431: //
+     .      .  432: //			while (__sync_lock_test_and_set(&lock[i], 1)) while (lock[i]);
+     .      .  433: //
+     .      .  434: //			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  435: //			{
+     .      .  436: //				fprintf(stderr, "Cannot end mutex timing.\n");
+     .      .  437: //				exit(1);
+     .      .  438: //			}
+     .      .  439: 		}
+     .      .  440: 
+     .      .  441: 		lock_time += 1000000000 * (lock_end.tv_sec - lock_begin.tv_sec) + lock_end.tv_nsec - lock_begin.tv_nsec;
+     .      .  442: 		int len = SortedList_length(&listhead[i]);
+     .      .  443: 		lengths += len;
+     .      .  444: 
+     .      .  445: //		if ( len < 0)
+     .      .  446: //		{
+     .      .  447: //			fprintf(stderr, "Cannot get the correct length.\n");
+     .      .  448: //			exit(1);
+     .      .  449: //		}
+     .      .  450: 
+     .      .  451: 		if (opt_sync == 'm')
+     .      .  452: 		{
+     .      .  453: //			pthread_mutex_unlock(&mutex[list[i]]);
+     .      .  454: 			if( pthread_mutex_unlock(&mutex[list[i]])!= 0)
+     .      .  455: 			{
+     .      .  456: 				fprintf(stderr, "Cannot unlock by mutex.\n");
+     .      .  457: 				exit(1);
+     .      .  458: 			}
+     .      .  459: 		}
+     .      .  460: 
+     .      .  461: 		else if (opt_sync == 's')
+     .      .  462: 			__sync_lock_release(&lock[list[i]]);
+     .      .  463: 	}
+     .      .  464: 
+     .      .  465: 	i = *(int*)arg;
+     .      .  466: 	SortedListElement_t* ptr;
+     .      .  467: 	//looks up and deletes each of the keys it had previously inserted
+     .      .  468: 	for ( ; i <  num_list_element; i+= threads)
+     .      .  469: 	{
+     .      .  470: 		if(opt_sync == 'm')
+     .      .  471: 		{
+     .      .  472: //			clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  473: //			pthread_mutex_lock(&mutex[list[i]]);
+     .      .  474: //			clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  475: 			
+     .      .  476: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  477: 			{
+     .      .  478: 				fprintf(stderr, "error starting mutex timing");
+     .      .  479: 				exit(1);
+     .      .  480: 			}
+     .      .  481: 
+     .      .  482: 			if( pthread_mutex_lock(&mutex[list[i]])!= 0)
+     .      .  483: 			{
+     .      .  484: 				fprintf(stderr, "Cannot lock by mutex.\n");
+     .      .  485: 				exit(1);
+     .      .  486: 			}
+     .      .  487: 
+     .      .  488: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  489: 			{
+     .      .  490: 				fprintf(stderr, "error starting mutex timing");
+     .      .  491: 				exit(1);
+     .      .  492: 			}
+     .      .  493: 		}
+     .      .  494: 		else if (opt_sync == 's')
+     .      .  495: 		{
+     .      .  496: //			clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  497: //			while (__sync_lock_test_and_set(&lock[list[i]], 1));
+     .      .  498: //			clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  499: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  500: 			{
+     .      .  501: 				fprintf(stderr, "error starting mutex timing");
+     .      .  502: 				exit(1);
+     .      .  503: 			}
+     .      .  504: 
+   652    652  505: 			while (__sync_lock_test_and_set(&lock[list[i]], 1)) while (lock[list[i]]);
+     .      .  506: 
+     .      .  507: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  508: 			{
+     .      .  509: 				fprintf(stderr, "error starting mutex timing");
+     .      .  510: 				exit(1);
+     .      .  511: 			}
+     .      .  512: 		}
+     .      .  513: 
+     .      .  514: 		lock_time += 1000000000 * (lock_end.tv_sec - lock_begin.tv_sec) + lock_end.tv_nsec - lock_begin.tv_nsec;
+     .      6  515: 		ptr = SortedList_lookup(&listhead[list[i]], pool[i].key);
+     .      .  516: 
+     .      .  517: 		if (ptr == NULL)
+     .      .  518: 		{
+     .      .  519: 			fprintf(stderr, "Cannot delete the target, list is corrupted.\n");
+     .      .  520: 			exit(2);
+     .      .  521: 		}
+     .      .  522: 
+     .      .  523: 		if( SortedList_delete(ptr))
+     .      .  524: 		{
+     .      .  525: 			fprintf(stderr, "Cannot delete the target, list is corrupted.\n");
+     .      .  526: 			exit(2);
+     .      .  527: 		}
+     .      .  528: 
+     .      .  529: 		if (opt_sync == 'm')
+     .      .  530: 		{
+     .      .  531: 			if( pthread_mutex_unlock(&mutex[list[i]])!= 0)
+     .      .  532: 			{
+     .      .  533: 				fprintf(stderr, "Cannot unlock by mutex.\n");
+     .      .  534: 				exit(1);
+     .      .  535: 			}
+     .      .  536: 		}
+     .      .  537: 
+     .      .  538: 		else if (opt_sync == 's')
+     .      .  539: 		{
+     .      .  540: 			__sync_lock_release(&lock[list[i]]);
+     .      .  541: 		}
+     .      .  542: 	}
+     .      .  543: 	return NULL;
+     .      .  544: }
+---
+     .      .  545: 
+     .      .  546: int main(int argc, char * argv[])
+     .      .  547: {
+     .      .  548: 
+     .      .  549: //	//default
+ROUTINE ====================== thread_worker in /u/cs/ugrad/ziying/cs111/p2b/lab2_list.c
+  1118   1158 Total samples (flat / cumulative)
+     .      .  321: //	return NULL;
+     .      .  322: //}
+     .      .  323: 
+     .      .  324: 
+     .      .  325: void *thread_worker(void *arg)
+---
+     .      .  326: {
+     .      .  327: 	int i = *((long*)arg);
+     .      .  328: 
+     .      .  329: 	struct timespec lock_begin, lock_end;
+     .      .  330: 
+     .      .  331: 	for (; i <  num_list_element; i+=threads)
+     .      .  332: 	{
+     .      .  333: 		if(opt_sync == 'm')
+     .      .  334: 		{
+     .      .  335: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  336: 			{
+     .      .  337: 				fprintf(stderr, "error starting mutex timing");
+     .      .  338: 				exit(1);
+     .      .  339: 			}
+     .      .  340: 			//clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  341: 			//pthread_mutex_lock(&mutex[list[i]]);
+     .      .  342: 			if (pthread_mutex_lock(&mutex[list[i]]) !=0 )
+     .      .  343: 			{
+     .      .  344: 				fprintf(stderr, "Cannot lock by mutex.\n");
+     .      .  345: 				exit(1);
+     .      .  346: 			}
+     .      .  347: 			//clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  348: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  349: 			{
+     .      .  350: 				fprintf(stderr, "error starting mutex timing");
+     .      .  351: 				exit(1);
+     .      .  352: 			}
+     .      .  353: 		}
+     .      .  354: 
+     .      .  355: 		else if (opt_sync == 's')
+     .      .  356: 		{
+     .      .  357: 			//clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  358: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  359: 			{
+     .      .  360: 				fprintf(stderr, "Cannot start mutex timing");
+     .      .  361: 				exit(1);
+     .      .  362: 			}
+     .      .  363: 
+   464    464  364: 			while (__sync_lock_test_and_set(&lock[list[i]], 1));
+     .      .  365: 
+     .      .  366: 			//clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  367: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  368: 			{
+     .      .  369: 				fprintf(stderr, "Cannot end mutex timing");
+     .      .  370: 				exit(1);
+     .      .  371: 			}
+     .      .  372: 		}
+     1      1  373: 		lock_time += 1000000000 * (lock_end.tv_sec - lock_begin.tv_sec) + lock_end.tv_nsec - lock_begin.tv_nsec;
+     .     34  374: 		SortedList_insert(&listhead[list[i]], &pool[i]);
+     .      .  375: 
+     .      .  376: 		if (opt_sync == 'm')
+     .      .  377: 		{
+     .      .  378: //			pthread_mutex_unlock(&mutex[list[i]]);
+     .      .  379: 			if( pthread_mutex_unlock(&mutex[list[i]])!= 0)
+     .      .  380: 			{
+     .      .  381: 				fprintf(stderr, "Cannot unlock by mutex.\n");
+     .      .  382: 				exit(1);
+     .      .  383: 			}
+     .      .  384: 		}
+     .      .  385: 
+     .      .  386: 		else if (opt_sync == 's')
+     1      1  387: 			__sync_lock_release(&lock[list[i]]);
+     .      .  388: 	}
+     .      .  389: 
+     .      .  390: 	//gets the list length
+     .      .  391: 	int lengths;
+     .      .  392: 	lengths = 0;
+     .      .  393: 
+     .      .  394: 	for ( i = 0; i < num_lists; i++)
+     .      .  395: 	{
+     .      .  396: 		if(opt_sync == 'm')
+     .      .  397: 		{
+     .      .  398: 		
+     .      .  399: 			clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  400: 			pthread_mutex_lock(&mutex[list[i]]);
+     .      .  401: 			clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  402: //			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  403: //			{
+     .      .  404: //				fprintf(stderr, "Cannot not start mutex timing.\n");
+     .      .  405: //				exit(1);
+     .      .  406: //			}
+     .      .  407: //
+     .      .  408: //			if( pthread_mutex_lock(&mutex[i])!= 0)
+     .      .  409: //			{
+     .      .  410: //				fprintf(stderr, "Cannot lock by mutex.\n");
+     .      .  411: //				exit(1);
+     .      .  412: //			}
+     .      .  413: //
+     .      .  414: //			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  415: //			{
+     .      .  416: //				fprintf(stderr, "Error on ending mutex timing.\n");
+     .      .  417: //				exit(1);
+     .      .  418: //			}
+     .      .  419: 		}
+     .      .  420: 		else if (opt_sync == 's')
+     .      .  421: 		{
+     .      .  422: 		
+     .      .  423: 			clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  424: 			while (__sync_lock_test_and_set(&lock[list[i]], 1));
+     .      .  425: 			clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  426: //			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  427: //			{
+     .      .  428: //				fprintf(stderr, "Cannot start mutex timing.\n");
+     .      .  429: //				exit(1);
+     .      .  430: //			}
+     .      .  431: //
+     .      .  432: //			while (__sync_lock_test_and_set(&lock[i], 1)) while (lock[i]);
+     .      .  433: //
+     .      .  434: //			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  435: //			{
+     .      .  436: //				fprintf(stderr, "Cannot end mutex timing.\n");
+     .      .  437: //				exit(1);
+     .      .  438: //			}
+     .      .  439: 		}
+     .      .  440: 
+     .      .  441: 		lock_time += 1000000000 * (lock_end.tv_sec - lock_begin.tv_sec) + lock_end.tv_nsec - lock_begin.tv_nsec;
+     .      .  442: 		int len = SortedList_length(&listhead[i]);
+     .      .  443: 		lengths += len;
+     .      .  444: 
+     .      .  445: //		if ( len < 0)
+     .      .  446: //		{
+     .      .  447: //			fprintf(stderr, "Cannot get the correct length.\n");
+     .      .  448: //			exit(1);
+     .      .  449: //		}
+     .      .  450: 
+     .      .  451: 		if (opt_sync == 'm')
+     .      .  452: 		{
+     .      .  453: //			pthread_mutex_unlock(&mutex[list[i]]);
+     .      .  454: 			if( pthread_mutex_unlock(&mutex[list[i]])!= 0)
+     .      .  455: 			{
+     .      .  456: 				fprintf(stderr, "Cannot unlock by mutex.\n");
+     .      .  457: 				exit(1);
+     .      .  458: 			}
+     .      .  459: 		}
+     .      .  460: 
+     .      .  461: 		else if (opt_sync == 's')
+     .      .  462: 			__sync_lock_release(&lock[list[i]]);
+     .      .  463: 	}
+     .      .  464: 
+     .      .  465: 	i = *(int*)arg;
+     .      .  466: 	SortedListElement_t* ptr;
+     .      .  467: 	//looks up and deletes each of the keys it had previously inserted
+     .      .  468: 	for ( ; i <  num_list_element; i+= threads)
+     .      .  469: 	{
+     .      .  470: 		if(opt_sync == 'm')
+     .      .  471: 		{
+     .      .  472: //			clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  473: //			pthread_mutex_lock(&mutex[list[i]]);
+     .      .  474: //			clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  475: 			
+     .      .  476: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  477: 			{
+     .      .  478: 				fprintf(stderr, "error starting mutex timing");
+     .      .  479: 				exit(1);
+     .      .  480: 			}
+     .      .  481: 
+     .      .  482: 			if( pthread_mutex_lock(&mutex[list[i]])!= 0)
+     .      .  483: 			{
+     .      .  484: 				fprintf(stderr, "Cannot lock by mutex.\n");
+     .      .  485: 				exit(1);
+     .      .  486: 			}
+     .      .  487: 
+     .      .  488: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  489: 			{
+     .      .  490: 				fprintf(stderr, "error starting mutex timing");
+     .      .  491: 				exit(1);
+     .      .  492: 			}
+     .      .  493: 		}
+     .      .  494: 		else if (opt_sync == 's')
+     .      .  495: 		{
+     .      .  496: //			clock_gettime(CLOCK_MONOTONIC, &lock_begin);
+     .      .  497: //			while (__sync_lock_test_and_set(&lock[list[i]], 1));
+     .      .  498: //			clock_gettime(CLOCK_MONOTONIC, &lock_end);
+     .      .  499: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_begin) == -1)
+     .      .  500: 			{
+     .      .  501: 				fprintf(stderr, "error starting mutex timing");
+     .      .  502: 				exit(1);
+     .      .  503: 			}
+     .      .  504: 
+   652    652  505: 			while (__sync_lock_test_and_set(&lock[list[i]], 1)) while (lock[list[i]]);
+     .      .  506: 
+     .      .  507: 			if (clock_gettime(CLOCK_MONOTONIC, &lock_end) == -1)
+     .      .  508: 			{
+     .      .  509: 				fprintf(stderr, "error starting mutex timing");
+     .      .  510: 				exit(1);
+     .      .  511: 			}
+     .      .  512: 		}
+     .      .  513: 
+     .      .  514: 		lock_time += 1000000000 * (lock_end.tv_sec - lock_begin.tv_sec) + lock_end.tv_nsec - lock_begin.tv_nsec;
+     .      6  515: 		ptr = SortedList_lookup(&listhead[list[i]], pool[i].key);
+     .      .  516: 
+     .      .  517: 		if (ptr == NULL)
+     .      .  518: 		{
+     .      .  519: 			fprintf(stderr, "Cannot delete the target, list is corrupted.\n");
+     .      .  520: 			exit(2);
+     .      .  521: 		}
+     .      .  522: 
+     .      .  523: 		if( SortedList_delete(ptr))
+     .      .  524: 		{
+     .      .  525: 			fprintf(stderr, "Cannot delete the target, list is corrupted.\n");
+     .      .  526: 			exit(2);
+     .      .  527: 		}
+     .      .  528: 
+     .      .  529: 		if (opt_sync == 'm')
+     .      .  530: 		{
+     .      .  531: 			if( pthread_mutex_unlock(&mutex[list[i]])!= 0)
+     .      .  532: 			{
+     .      .  533: 				fprintf(stderr, "Cannot unlock by mutex.\n");
+     .      .  534: 				exit(1);
+     .      .  535: 			}
+     .      .  536: 		}
+     .      .  537: 
+     .      .  538: 		else if (opt_sync == 's')
+     .      .  539: 		{
+     .      .  540: 			__sync_lock_release(&lock[list[i]]);
+     .      .  541: 		}
+     .      .  542: 	}
+     .      .  543: 	return NULL;
+     .      .  544: }
+---
+     .      .  545: 
+     .      .  546: int main(int argc, char * argv[])
+     .      .  547: {
+     .      .  548: 
+     .      .  549: //	//default
